@@ -12,6 +12,9 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # Allow all hosts locally, restrict using environment in production
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ["*"]
+DEBUG = true  # set True for testing
+PORT = os.environ.get("PORT", 8000)
 
 # ---------------------------------------------------
 # INSTALLED APPS
@@ -128,7 +131,7 @@ USE_TZ = True
 # STATIC FILES
 # ---------------------------------------------------
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",     # for development static folder
