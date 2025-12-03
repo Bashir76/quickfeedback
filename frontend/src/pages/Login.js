@@ -1,42 +1,40 @@
-import { useState } from "react";
-import API from "../api/api";
+// src/pages/Login.js
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import "./Pages.css";
 
-function Login() {
+export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
-  const handleSubmit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    API.post("/auth/login/", { username, password })
-      .then((res) => {
-        localStorage.setItem("token", res.data.token);
-        navigate("/");
-      })
-      .catch((err) => console.error(err));
+    setBusy(true);
+    setErr("");
+    try {
+      await login(username, password);
+      navigate("/");
+    } catch (error) {
+      setErr(error.response?.data?.detail || "Login failed");
+    } finally { setBusy(false); }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Login</button>
-    </form>
+    <div className="page">
+      <h1 className="page-title">Login</h1>
+      <div className="card">
+        {err && <p className="error">{err}</p>}
+        <form onSubmit={submit}>
+          <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" required />
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required />
+          <button className="primary" type="submit" disabled={busy}>{busy ? "Logging in..." : "Login"}</button>
+        </form>
+      </div>
+    </div>
   );
 }
-
-export default Login;
