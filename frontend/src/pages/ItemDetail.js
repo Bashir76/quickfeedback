@@ -1,48 +1,75 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import API from "../api/api";
+// src/pages/ItemDetails.js
+import React, { useEffect, useState, useContext } from "react";
+import api from "../api";
+import { useParams, Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import "./Pages.css";
 
-function ItemDetail() {
-  const { id } = useParams();
-  const [item, setItem] = useState({});
+export default function ItemDetails() {
+  const { itemId } = useParams();
+  const [item, setItem] = useState(null);
   const [feedback, setFeedback] = useState([]);
-  const [newFeedback, setNewFeedback] = useState("");
+  const [comment, setComment] = useState("");
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    API.get(`/items/${id}/`).then((res) => setItem(res.data));
-    API.get(`/items/${id}/feedback/`).then((res) => setFeedback(res.data));
-  }, [id]);
+    api.get(`items/${itemId}/`)
+      .then(res => setItem(res.data))
+      .catch(err => console.error(err));
 
-  const handleSubmit = (e) => {
+    api.get(`items/${itemId}/feedback/`)
+      .then(res => setFeedback(res.data))
+      .catch(err => console.error(err));
+  }, [itemId]);
+
+  const submit = async (e) => {
     e.preventDefault();
-    API.post(`/items/${id}/feedback/`, { content: newFeedback }).then((res) => {
+    if (!user) {
+      alert("Login required to submit feedback.");
+      return;
+    }
+    try {
+      const res = await api.post(`items/${itemId}/feedback/`, { comment });
       setFeedback([...feedback, res.data]);
-      setNewFeedback("");
-    });
+      setComment("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit feedback.");
+    }
   };
 
+  if (!item) return <div className="page"><p className="muted">Loading...</p></div>;
+
   return (
-    <div>
-      <h1>{item.name}</h1>
-      <p>{item.description}</p>
+    <div className="page">
+      <h1 className="page-title">{item.name}</h1>
+      <div className="card">
+        <p>{item.description}</p>
+      </div>
+
       <h2>Feedback</h2>
-      <ul>
-        {feedback.map((f) => (
-          <li key={f.id}>{f.content}</li>
+      <div className="grid">
+        {feedback.length === 0 ? <p className="muted">No feedback yet.</p> : feedback.map(f => (
+          <div className="card" key={f.id}>
+            <p>{f.comment}</p>
+            <p className="muted">By: {f.user?.username || "anonymous"}</p>
+          </div>
         ))}
-      </ul>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={newFeedback}
-          onChange={(e) => setNewFeedback(e.target.value)}
-          placeholder="Write feedback..."
-          required
-        />
-        <button type="submit">Submit</button>
-      </form>
+      </div>
+
+      <div className="card">
+        <h3>Leave feedback</h3>
+        {user ? (
+          <form onSubmit={submit}>
+            <textarea value={comment} onChange={(e) => setComment(e.target.value)} required placeholder="Your feedback..." />
+            <button className="primary" type="submit">Submit</button>
+          </form>
+        ) : (
+          <p className="muted">Please <Link to="/login">login</Link> to submit feedback.</p>
+        )}
+      </div>
+
+      <Link className="back-btn" to={item.category ? `/items?category=${item.category}` : "/items"}>← Back</Link>
     </div>
   );
 }
-
-export default ItemDetail;
