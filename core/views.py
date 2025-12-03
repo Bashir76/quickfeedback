@@ -1,9 +1,15 @@
 from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
+
 from .models import Category, Item, Feedback
 from .serializers import CategorySerializer, ItemSerializer, FeedbackSerializer
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
+
+# --------------------------
+# CATEGORY LIST + CREATE
+# --------------------------
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -12,8 +18,11 @@ class CategoryListCreateView(generics.ListCreateAPIView):
         if self.request.method == "POST":
             return [IsAdminUser()]
         return []
-        
 
+
+# --------------------------
+# ITEM LIST + CREATE
+# --------------------------
 class ItemListCreateView(generics.ListCreateAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
@@ -24,11 +33,17 @@ class ItemListCreateView(generics.ListCreateAPIView):
         return []
 
 
+# --------------------------
+# ITEM DETAIL VIEW
+# --------------------------
 class ItemDetailView(generics.RetrieveAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
 
 
+# --------------------------
+# LIST FEEDBACK FOR AN ITEM
+# --------------------------
 class FeedbackListCreateView(generics.ListCreateAPIView):
     serializer_class = FeedbackSerializer
 
@@ -38,3 +53,25 @@ class FeedbackListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+# --------------------------
+# CREATE FEEDBACK (POST only)
+# --------------------------
+class FeedbackCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, item_id):
+        # Check item exists
+        try:
+            item = Item.objects.get(id=item_id)
+        except Item.DoesNotExist:
+            return Response({"error": "Item not found"}, status=404)
+
+        # Create feedback
+        serializer = FeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, item=item)
+            return Response(serializer.data, status=201)
+
+        return Response(serializer.errors, status=400)
