@@ -1,26 +1,30 @@
-import { useEffect, useState } from "react";
-import API from "../api/api";
-import CategoryCard from "../components/CategoryCard";
+// src/pages/Categories.js
+import React, { useEffect, useState } from "react";
+import api from "../api";
+import { Link } from "react-router-dom";
+import "./Pages.css";
 
-function Categories() {
-  const [categories, setCategories] = useState([]);
+export default function Categories() {
+  const [cats, setCats] = useState([]);
 
   useEffect(() => {
-    API.get("/categories/")
-      .then((res) => setCategories(res.data))
-      .catch((err) => console.error(err));
+    api.get("categories/")
+      .then(res => setCats(res.data))
+      .catch(err => { console.error(err); setCats([]); });
   }, []);
 
   return (
-    <div>
-      <h1>Categories</h1>
-      <div className="categories-grid">
-        {categories.map((cat) => (
-          <CategoryCard key={cat.id} category={cat} />
+    <div className="page">
+      <h1 className="page-title">Categories</h1>
+      <div className="grid">
+        {cats.length === 0 ? <p className="muted">No categories</p> : cats.map(c => (
+          <div key={c.id} className="card">
+            <h3>{c.name}</h3>
+            <p className="muted">{c.description}</p>
+            <Link to={`/items?category=${c.id}`} className="link-btn">View items</Link>
+          </div>
         ))}
       </div>
     </div>
   );
 }
-
-export default Categories;
