@@ -1,7 +1,7 @@
 // src/api.js
 import axios from "axios";
 
-const API_BASE = "http://127.0.0.1:8000/api/"; // change if your backend URL differs
+const API_BASE = "https://quickfeedback.up.railway.app/api/"; // change if your backend URL differs
 
 const api = axios.create({
   baseURL: API_BASE,
