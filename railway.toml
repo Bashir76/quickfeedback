@@ -1,10 +1,7 @@
 [build]
-builder = "python"
-buildCommand = "pip install -r requirements.txt"
-
-[start]
-startCommand = "gunicorn quickfeedback.wsgi:application --bind 0.0.0.0:$PORT"
+builder = "nixpacks"
 
 [deploy]
+startCommand = "gunicorn quickfeedback.wsgi:application --bind 0.0.0.0:$PORT"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
