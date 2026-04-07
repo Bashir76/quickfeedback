@@ -13,7 +13,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # Allow all hosts locally, restrict using environment in production
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 ALLOWED_HOSTS = ["*"]
-DEBUG = true  # set True for testing
+DEBUG = True  # set True for testing
 PORT = os.environ.get("PORT", 8000)
 
 # ---------------------------------------------------
